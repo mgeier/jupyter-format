@@ -1,0 +1,94 @@
+nbformat 4
+nbformat_minor 2
+markdown
+    This notebook is part of the `jupyter_format` documentation:
+    https://jupyter-format.readthedocs.io/.
+  metadata
+    {
+     "nbsphinx": "hidden"
+    }
+markdown
+    # Installation
+    
+    Since `jupyter_format` is in an experimental state,
+    it is deliberately *not* available on [PyPI](https://pypi.org).
+    
+    But if you want to play around with it,
+    you can get it from [Github](https://github.com/mgeier/jupyter-format)
+    and make an "editable" installation with
+    
+        git clone https://github.com/mgeier/jupyter-format.git
+        cd jupyter-format
+        python3 -m pip install -e . --user
+    
+    If you install it in a virtual environment,
+    you can drop the `--user` option.
+    
+    If you don't need a local Git checkout,
+    you can also directly install it with
+    
+        python3 -m pip install git+https://github.com/mgeier/jupyter-format.git@master --user
+markdown
+    ## JupyterLab and Classic Notebook Integration
+    
+    If you want to be able to load and save Jupyter notebooks in the new format,
+    you can specify a custom "contents manager" in your configuration.
+    
+    You can find your configuration directory with
+    
+        python3 -m jupyter --config-dir
+    
+    If you don't yet have a configuration file there,
+    you can generate it with JupyterLab:
+    
+        python3 -m jupyterlab --generate-config
+    
+    If you still use the Classic Notebook, generate the file with
+    
+        python3 -m notebook --generate-config
+    
+    To enable the custom "contents manager",
+    simply open the file `jupyter_notebook_config.py`and add this line:
+    
+    ```python
+    c.NotebookApp.contents_manager_class = 'jupyter_format.contents_manager.FileContentsManager'
+    ```
+    
+    <div class="alert alert-info">
+    
+    At the time of writing this,
+    JupyterLab is not yet able to open `*.jupyter` files by double-clicking.
+    You have to right-click and use "Open With" $\to$ "Notebook".
+    See also https://github.com/jupyterlab/jupyterlab/issues/4924 and
+    https://github.com/jupyterlab/jupyterlab/pull/5247.
+    
+    </div>
+markdown
+    ## Usage on Binder
+    
+    If you want to use the new format on https://mybinder.org (which is great!),
+    just create a configuration file in your repository using the path
+    
+        .jupyter/jupyter_notebook_config.py
+    
+    ... and put the above-mentioned line in it.
+metadata
+    {
+     "kernelspec": {
+      "display_name": "Python 3",
+      "language": "python",
+      "name": "python3"
+     },
+     "language_info": {
+      "codemirror_mode": {
+       "name": "ipython",
+       "version": 3
+      },
+      "file_extension": ".py",
+      "mimetype": "text/x-python",
+      "name": "python",
+      "nbconvert_exporter": "python",
+      "pygments_lexer": "ipython3",
+      "version": "3.7.2"
+     }
+    }

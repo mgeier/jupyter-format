@@ -1,0 +1,83 @@
+nbformat 4
+nbformat_minor 2
+markdown
+    This notebook is part of the `jupyter_format` documentation:
+    https://jupyter-format.readthedocs.io/.
+  metadata
+    {
+     "nbsphinx": "hidden"
+    }
+markdown
+    # Notebook format conversions with `nbconvert`
+    
+    During the installation of `jupyter_format`
+    (see [Installation](installation.jupyter)),
+    so-called "entry points" for `nbconvert` are configured automatically.
+    
+    You can convert `.ipynb` notebooks to `.jupyter`,
+    just as you are used to, with
+    
+        python3 -m nbconvert --to jupyter my-old-notebook.ipynb
+    
+    And you can convert in the other direction,
+    from `.jupyter` back to `.ipynb`
+    
+        python3 -m nbconvert --to notebook my-new-notebook.jupyter
+    
+    You can also convert from `.jupyter` files directly
+    to any of the output formats that `nbconvert` supports:
+    
+        python3 -m nbconvert --to html my-new-notebook.jupyter
+markdown
+    So let's try it with this very notebook, shall we?
+code
+    !python3 -m nbconvert --to notebook nbconvert.jupyter --output=my-new-notebook
+markdown
+    Just to make sure it is actually using Jupyter's JSON format,
+    let's peek at the beginning of the file:
+code
+    !head my-new-notebook.ipynb
+markdown
+    Here's a link to the new file for your perusal:
+    [my-new-notebook.ipynb](my-new-notebook.ipynb).
+    
+    Not let's convert this back to `.jupyter`:
+code
+    !python3 -m nbconvert --to jupyter my-new-notebook.ipynb
+markdown
+    Again, we take a peek:
+code
+    !head my-new-notebook.jupyter
+markdown
+    And a link for closer inspection:
+    [my-new-notebook.jupyter](my-new-notebook.jupyter).
+    
+    Finally, let's try to convert this `.jupyter` file to an HTML page:
+code
+    !python3 -m nbconvert --to html my-new-notebook.jupyter
+code
+    from IPython.display import IFrame
+    IFrame('my-new-notebook.html', width='100%', height=350)
+markdown
+    And for completeness' sake, a link:
+    [my-new-notebook.html](my-new-notebook.html).
+metadata
+    {
+     "kernelspec": {
+      "display_name": "Python 3",
+      "language": "python",
+      "name": "python3"
+     },
+     "language_info": {
+      "codemirror_mode": {
+       "name": "ipython",
+       "version": 3
+      },
+      "file_extension": ".py",
+      "mimetype": "text/x-python",
+      "name": "python",
+      "nbconvert_exporter": "python",
+      "pygments_lexer": "ipython3",
+      "version": "3.7.2"
+     }
+    }
