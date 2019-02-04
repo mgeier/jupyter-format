@@ -14,24 +14,27 @@ markdown
     (see [Installation](installation.jupyter)),
     so-called "entry points" for `nbconvert` are configured automatically.
     
-    You can convert `.ipynb` notebooks to `.jupyter`,
-    just as you are used to, with
+    You can convert `.ipynb` notebooks to `.jupyter` notebooks with
     
         python3 -m nbconvert --to jupyter my-old-notebook.ipynb
     
-    And you can convert in the other direction,
-    from `.jupyter` back to `.ipynb`
+    To convert a `.jupyter` notebook to any format supported by `nbconvert`,
+    just append `_from_jupyter` to the desired format.
     
-        python3 -m nbconvert --to notebook my-new-notebook.jupyter
+    For example, you can convert a `.jupyter` notebook
+    to the traditional `.ipynb` format:
     
-    You can also convert from `.jupyter` files directly
-    to any of the output formats that `nbconvert` supports:
+        python3 -m nbconvert --to notebook_from_jupyter my-new-notebook.jupyter
     
-        python3 -m nbconvert --to html my-new-notebook.jupyter
+    Or you can convert a `.jupyter` file to an HTML file:
+    
+        python3 -m nbconvert --to html_from_jupyter my-new-notebook.jupyter
+    
+    Same for `slides_from_jupyter`, `latex_from_jupyter`, `pdf_from_jupyter` etc. 
 markdown
-    So let's try it with this very notebook, shall we?
+    But enough for the theory, let's try it with this very notebook, shall we?
 code
-    !python3 -m nbconvert --to notebook nbconvert.jupyter --output=my-new-notebook
+    !python3 -m nbconvert --to notebook_from_jupyter nbconvert.jupyter --output=my-new-notebook
 markdown
     Just to make sure it is actually using Jupyter's JSON format,
     let's peek at the beginning of the file:
@@ -54,7 +57,7 @@ markdown
     
     Finally, let's try to convert this `.jupyter` file to an HTML page:
 code
-    !python3 -m nbconvert --to html my-new-notebook.jupyter
+    !python3 -m nbconvert --to html_from_jupyter my-new-notebook.jupyter
 code
     from IPython.display import IFrame
     IFrame('my-new-notebook.html', width='100%', height=350)

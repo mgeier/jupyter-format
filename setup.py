@@ -34,19 +34,20 @@ setup(
     zip_safe=True,
     entry_points={
         'nbconvert.exporters': [
-            'jupyter = jupyter_format.exporters:JupyterExporter',
-            # Overwrite the nbconvert exporters with extended classes:
-            'custom = jupyter_format.exporters:TemplateExporter',
-            'html = jupyter_format.exporters:HTMLExporter',
-            'slides = jupyter_format.exporters:SlidesExporter',
-            'latex = jupyter_format.exporters:LatexExporter',
-            'pdf = jupyter_format.exporters:PDFExporter',
-            'markdown = jupyter_format.exporters:MarkdownExporter',
-            'python = jupyter_format.exporters:PythonExporter',
-            'rst = jupyter_format.exporters:RSTExporter',
-            'notebook = jupyter_format.exporters:NotebookExporter',
-            'asciidoc = jupyter_format.exporters:ASCIIDocExporter',
-            'script = jupyter_format.exporters:ScriptExporter',
+            'jupyter=jupyter_format.exporters:JupyterExporter',
+            'custom_from_jupyter=jupyter_format.exporters:TemplateExporter',
+            'html_from_jupyter=jupyter_format.exporters:HTMLExporter',
+            'slides_from_jupyter=jupyter_format.exporters:SlidesExporter',
+            'latex_from_jupyter=jupyter_format.exporters:LatexExporter',
+            'pdf_from_jupyter=jupyter_format.exporters:PDFExporter',
+            'markdown_from_jupyter=jupyter_format.exporters:MarkdownExporter',
+            'python_from_jupyter=jupyter_format.exporters:PythonExporter',
+            'rst_from_jupyter=jupyter_format.exporters:RSTExporter',
+            'notebook_from_jupyter=jupyter_format.exporters:NotebookExporter',
+            'asciidoc_from_jupyter=jupyter_format.exporters:ASCIIDocExporter',
+            'script_from_jupyter=jupyter_format.exporters:ScriptExporter',
+            # Just for completeness's sake (same as "jupyter"):
+            'jupyter_from_jupyter=jupyter_format.exporters:JupyterExporter',
         ],
     },
 )
