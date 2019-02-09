@@ -51,6 +51,8 @@ setup(
             'notebook-from-jupyter=jupyter_format.exporters:NotebookExporter',
             'asciidoc-from-jupyter=jupyter_format.exporters:ASCIIDocExporter',
             'script-from-jupyter=jupyter_format.exporters:ScriptExporter',
+            # Convenience alias for "notebook-from-jupyter":
+            'ipynb-from-jupyter=jupyter_format.exporters:NotebookExporter',
             # Just for completeness's sake (same as "jupyter"):
             'jupyter-from-jupyter=jupyter_format.exporters:JupyterExporter',
         ],

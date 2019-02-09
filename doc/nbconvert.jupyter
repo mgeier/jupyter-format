@@ -24,7 +24,7 @@ markdown
     For example, you can convert a `.jupyter` notebook
     to the traditional `.ipynb` format:
     
-        python3 -m nbconvert --to notebook-from-jupyter my-new-notebook.jupyter
+        python3 -m nbconvert --to ipynb-from-jupyter my-new-notebook.jupyter
     
     Or you can convert a `.jupyter` file to an HTML file:
     
@@ -34,7 +34,7 @@ markdown
 markdown
     But enough for the theory, let's try it with this very notebook, shall we?
 code
-    !python3 -m nbconvert --to notebook-from-jupyter nbconvert.jupyter --output=my-new-notebook
+    !python3 -m nbconvert --to ipynb-from-jupyter nbconvert.jupyter --output=my-new-notebook
 markdown
     Just to make sure it is actually using Jupyter's JSON format,
     let's peek at the beginning of the file:
