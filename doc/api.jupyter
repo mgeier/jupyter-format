@@ -8,7 +8,9 @@ markdown
      "nbsphinx": "hidden"
     }
 markdown
-    This notebook contains mostly "raw" cells in reStructuredText format,
+    [reST]: http://docutils.sourceforge.net/rst.html
+    
+    This notebook contains mostly "raw" cells in [reStructuredText][reST] format,
     which are used to auto-generate the ...
     
     # API Documentation
@@ -94,6 +96,6 @@ metadata
       "name": "python",
       "nbconvert_exporter": "python",
       "pygments_lexer": "ipython3",
-      "version": "3.7.2"
+      "version": "3.7.2+"
      }
     }

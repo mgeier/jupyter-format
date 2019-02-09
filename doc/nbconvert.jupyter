@@ -44,7 +44,7 @@ markdown
     Here's a link to the new file for your perusal:
     [my-new-notebook.ipynb](my-new-notebook.ipynb).
     
-    Not let's convert this back to `.jupyter`:
+    Now let's convert this back to `.jupyter`:
 code
     !python3 -m nbconvert --to jupyter my-new-notebook.ipynb
 markdown
@@ -81,6 +81,6 @@ metadata
       "name": "python",
       "nbconvert_exporter": "python",
       "pygments_lexer": "ipython3",
-      "version": "3.7.2"
+      "version": "3.7.2+"
      }
     }
