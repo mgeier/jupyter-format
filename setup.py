@@ -20,7 +20,12 @@ setup(
     long_description=open('README.rst').read(),
     license='MIT',
     keywords=''.split(),
-    url='',
+    url='https://jupyter-format.readthedocs.io/',
+    project_urls={
+        'Documentation': 'https://jupyter-format.readthedocs.io/',
+        'Source Code': 'https://github.com/mgeier/jupyter-format/',
+        'Bug Tracker': 'https://github.com/mgeier/jupyter-format/issues/',
+    },
     platforms='any',
     classifiers=[
         'Framework :: Jupyter',
