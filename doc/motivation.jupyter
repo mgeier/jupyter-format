@@ -10,7 +10,263 @@ markdown
 markdown
     # Motivation
     
-    TODO
+    ## Status Quo
+    
+    The original format for [Jupyter](https://jupyter.org/) notebooks
+    uses [JSON](http://json.org/) as underlying storage format.
+    This has the great advantage that such files are very easy to handle
+    programmatically in many different environments,
+    because JSON parsers are readily available for many programming languages.
+    
+    One disadvantage, however, is that the format is only semi-human-readable
+    and not very well human-editable.
+    All textual content
+    (e.g. text in Markdown cells and source code in code cells)
+    is stored in lists of JSON strings -- one string for each line.
+    This means that each line is surrounded by quotes (`"`) and
+    strings are separated by commas (`,`),
+    while lists of strings are surrounded by brackets (`[` and `]`).
+    On top of that,
+    several common characters are not allowed in JSON strings,
+    which means that they have to be escaped by backslashes,
+    e.g. `\"` and `\n`.
+    And since a backslash is used for escaping,
+    a literal backslash occurring in the text
+    (which is quite common in programming languages and markup languages)
+    has to be escaped itself (`\\`).
+markdown
+    As an example, let's create a notebook
+    containing the previous two sentences:
+code
+    import nbformat
+    nb = nbformat.v4.new_notebook()
+    nb.cells.append(nbformat.v4.new_markdown_cell(
+    r"""On top of that,
+    several common characters are not allowed in JSON strings,
+    which means that they have to be escaped by backslashes,
+    e.g. `\"` and `\n`.
+    And since a backslash is used for escaping,
+    a literal backslash occurring in the text
+    (which is quite common in programming languages and markup languages)
+    has to be escaped itself (`\\`)."""))
+markdown
+    The JSON-based storage of this minimal notebook looks like this:
+code
+    print(nbformat.writes(nb))
+markdown
+    Escaped characters and JSON syntax elements
+    make this harder than necessary to read,
+    and even harder to modify with a text editor.
+    When editing this by hand,
+    it is easy to mess up the JSON representation
+    by e.g. forgetting a comma.
+    
+    As a comparison,
+    the same notebook is stored like this in the proposed new format:
+code
+    import jupyter_format
+    print(jupyter_format.serialize(nb))
+markdown
+    This is exactly the same as the original Markdown content,
+    except that it is indented by 4 spaces.
+markdown
+    ## YAML as Almost-Solution
+    
+    It has been known for a long time
+    (probably since the inception of Jupyter/IPython notebooks)
+    that lists of JSON strings are not nicely readable for humans.
+    An obvious alternative would be to use [YAML](https://yaml.org),
+    which provides multiple ways to store text content.
+    One of those ways is the so-called [literal style],
+    which doesn't require any escaping,
+    making the text much more readable.
+    
+    [literal style]: https://yaml.org/spec/1.2/spec.html#style/block/literal
+    
+    This was already suggested in several blog posts:
+    
+    * https://matthiasbussonnier.com/posts/05-YAML%20Notebook.html
+    * http://droettboom.com/blog/2018/01/18/diffable-jupyter-notebooks/
+    
+    And there are even some implementations available:
+    
+    * https://github.com/prabhuramachandran/ipyaml
+    * https://github.com/mdboom/nbconvert_vc
+markdown
+    This is an example how a YAML-based storage format could look like:
+code
+    yaml_content = """
+    nbformat: 4
+    nbformat_minor: 2
+    cells:
+    - cell_type: markdown
+      source: |+2
+        # A Jupyter Notebook
+        
+        This is a code cell:
+      metadata: {}
+    - cell_type: code
+      source: |+2
+        print('Hello, world!')
+      outputs:
+      - output_type: stream
+        name: stdout
+        text: |+2
+          Hello, world!
+      execution_count: 1
+      metadata: {}
+    metadata: {}
+    """
+markdown
+    This is valid YAML, compatible with both version 1.1 and 1.2.
+    
+    Let's use [PyYAML](https://pyyaml.org) to read this:
+code
+    import yaml
+    nb_dict = yaml.load(yaml_content)
+    nb_dict
+markdown
+    This Python dictionary can easily be converted to a notebook node:
+code
+    nb = nbformat.from_dict(nb_dict)
+markdown
+    And we can use `nbconvert` to convert this to HTML:
+code
+    from nbconvert.exporters import HTMLExporter
+    html_content, resources = HTMLExporter().from_notebook_node(nb)
+code
+    import urllib
+    data_uri = 'data:text/html;charset=utf-8,' + urllib.parse.quote(html_content)
+code
+    from IPython.display import IFrame
+    IFrame(data_uri, width='100%', height='250')
+markdown
+    This looks promising, doesn't it?
+    
+    The problem is, as so often, in the details.
+    It's great that we can use *literal style* without
+    littering the text with quotes and escape characters,
+    but sadly, YAML only allows
+    [printable characters](https://yaml.org/spec/1.2/spec.html#printable%20character).
+    This means that we cannot use some control characters
+    which might occur in cell outputs,
+    for example ANSI escape characters.
+    
+    There are two options here:
+    
+    * Go back to escaped strings, at least in some circumstances.
+      But that's exactly what we wanted to avoid by using YAML!
+    * Don't use YAML after all
+markdown
+    ## Other Partial Solutions
+    
+    Some alternative notebook formats are supported by the very popular projects
+    https://github.com/aaren/notedown (Markdown) and
+    https://github.com/mwouts/jupytext (Markdown, Rmd, Julia/Python/R-scripts etc.).
+    
+    Those can be very useful, but none of them can store cell outputs,
+    therefore they cannot be a full replacement for the current storage format.
+    
+    
+    
+markdown
+    ## The Need for a Custom Format
+    
+    Looks like none of the existing formats are sufficient.
+    Probably we can achieve our goals with a custom format.
+    
+    Having to implement a custom parser for such a custom format
+    is of course a disadvantage,
+    but if we keep it really simple,
+    probably we can get away with it?
+    
+    Remember the YAML example from [above](#YAML-as-Almost-Solution)?
+code
+    print(yaml_content)
+markdown
+    The contained text (Markdown and Python source code)
+    is quite readable,
+    but it is still stuffed with many distracting things inbetween.
+    
+    Since we are not limited by YAML anymore,
+    we can agressively reduce this to only contain
+    the absolutely necessary information:
+code
+    content = """nbformat 4
+    nbformat_minor 2
+    markdown
+        # A Jupyter Notebook
+        
+        This is a code cell:
+    code 1
+        print('Hello, world!')
+      stream stdout
+        Hello, world!
+    """
+markdown
+    And that's the proposed new format!
+    
+    It can be converted to a notebook node
+    (which will look the same as in the YAML example above):
+code
+    jupyter_format.deserialize(content)
+markdown
+    Just to make sure it is a valid Jupyter notebook node:
+code
+    nbformat.validate(_)
+markdown
+    ## Complementary Tools
+    
+    Oftentimes cell outputs (e.g. plots) stored in notebooks
+    make it hard to read and manipulate the text representation
+    of such notebooks.
+    They make it also hard to use with version control systems
+    (e.g. Git).
+    
+    The proposed new format has the same problem,
+    outputs are still stored in the notebook file,
+    right next to the code cells that generated them.
+    
+    It is recommended to remove all outputs from a notebook
+    before storing it in version control
+    or before doing any manipulations with a text editor.
+    
+    Outputs can be removed manually in the Jupyter user interface,
+    but there are also tools to remove outputs programmatically:
+    
+    * https://github.com/kynan/nbstripout
+    * https://github.com/choldgraf/nbclean
+    * https://github.com/toobaz/ipynb_output_filter
+    
+    If you want to present your notebooks publicly,
+    you often want to show the outputs to your audience,
+    without them having to run the notebooks themselves.
+    So do you have to store your outputs after all?
+    
+    No! You can still store your notebooks without outputs
+    and run your notebooks on a server that will re-create
+    the outputs.
+    One tool to do this is:
+    
+    * https://nbsphinx.readthedocs.io/
+    
+    This is a [Sphinx](http://www.sphinx-doc.org/)
+    extension that can convert a bunch
+    of Jupyter notebooks (and other source files)
+    to HTML and PDF pages (and other output formats).
+    This way you have the best of both worlds:
+    No outputs in your (version controlled) notebook files,
+    but full outputs in the public HTML (or PDF) version.
+    
+    There are still some cases where you do want to store
+    the outputs for some reason.
+    Because of the outputs, it is hard to see the changes
+    to the text/code content of the notebook
+    with traditional tools like `diff`.
+    But luckily, there is a tool that can make
+    meaningful "diffs" for Jupyter notebooks:
+    
+    * https://github.com/jupyter/nbdime
 metadata
     {
      "kernelspec": {
@@ -28,6 +284,6 @@ metadata
       "name": "python",
       "nbconvert_exporter": "python",
       "pygments_lexer": "ipython3",
-      "version": "3.7.2"
+      "version": "3.7.2+"
      }
     }

@@ -1,4 +1,5 @@
 sphinx>=1.8
-nbconvert!=5.4
-notebook
 nbsphinx
+notebook
+nbconvert
+pyyaml
