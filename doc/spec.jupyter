@@ -10,7 +10,15 @@ markdown
 markdown
     # Specification
     
-    TODO
+    The exact specification is very much up for discussion!
+    
+    For now, you can simply [convert](nbconvert.jupyter) an existing notebook and
+    have a look at the resulting file in a text editor.
+    And of course you can have a look at the source code.
+    
+    If you have ideas for improving the (currently informal) specification or the
+    example implementation, please open an issue or pull request at
+    https://github.com/mgeier/jupyter-format/.
 metadata
     {
      "kernelspec": {
