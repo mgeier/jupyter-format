@@ -48,37 +48,54 @@ class TemplateExporter(JupyterImportMixin, _exp.TemplateExporter):
 class HTMLExporter(JupyterImportMixin, _exp.HTMLExporter):
     """See :class:`nbconvert.exporters.HTMLExporter`."""
 
+    export_from_notebook = '.jupyter -> HTML'
+
 
 class SlidesExporter(JupyterImportMixin, _exp.SlidesExporter):
     """See :class:`nbconvert.exporters.SlidesExporter`."""
+
+    export_from_notebook = '.jupyter -> Reveal.js slides'
 
 
 class LatexExporter(JupyterImportMixin, _exp.LatexExporter):
     """See :class:`nbconvert.exporters.LatexExporter`."""
 
+    export_from_notebook = '.jupyter -> LaTeX'
+
 
 class PDFExporter(JupyterImportMixin, _exp.PDFExporter):
     """See :class:`nbconvert.exporters.PDFExporter`."""
+
+    export_from_notebook = '.jupyter -> PDF via LaTeX'
 
 
 class MarkdownExporter(JupyterImportMixin, _exp.MarkdownExporter):
     """See :class:`nbconvert.exporters.MarkdownExporter`."""
 
+    export_from_notebook = '.jupyter -> Markdown'
+
 
 class PythonExporter(JupyterImportMixin, _exp.PythonExporter):
     """See :class:`nbconvert.exporters.PythonExporter`."""
+
+    export_from_notebook = '.jupyter -> Python'
 
 
 class RSTExporter(JupyterImportMixin, _exp.RSTExporter):
     """See :class:`nbconvert.exporters.RSTExporter`."""
 
+    export_from_notebook = '.jupyter -> reST'
+
 
 class NotebookExporter(JupyterImportMixin, _exp.NotebookExporter):
     """See :class:`nbconvert.exporters.NotebookExporter`."""
 
+    export_from_notebook = '.jupyter -> Notebook'
+
 
 class ASCIIDocExporter(JupyterImportMixin, _exp.ASCIIDocExporter):
-    pass
+
+    export_from_notebook = '.jupyter -> AsciiDoc'
 
 
 class ScriptExporter(JupyterImportMixin, _exp.ScriptExporter):
