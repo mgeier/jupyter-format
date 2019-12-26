@@ -3,7 +3,7 @@ nbformat_minor 2
 markdown
     This notebook is part of the `jupyter_format` documentation:
     https://jupyter-format.readthedocs.io/.
-  metadata
+ metadata
     {
      "nbsphinx": "hidden"
     }
@@ -24,7 +24,7 @@ raw
     .. autofunction:: deserialize
     
     .. autoclass:: ParseError
-  metadata
+ metadata
     {
      "raw_mimetype": "text/restructuredtext"
     }
@@ -34,7 +34,7 @@ raw
     .. currentmodule:: jupyter_format.contents_manager
     
     .. autoclass:: FileContentsManager
-  metadata
+ metadata
     {
      "raw_mimetype": "text/restructuredtext"
     }
@@ -65,7 +65,7 @@ raw
     .. autoclass:: ScriptExporter
     .. autoclass:: SlidesExporter
     .. autoclass:: TemplateExporter
-  metadata
+ metadata
     {
      "raw_mimetype": "text/restructuredtext"
     }
@@ -75,7 +75,7 @@ raw
     .. automodule:: jupyter_format.replace_all
        :members:
        :undoc-members:
-  metadata
+ metadata
     {
      "raw_mimetype": "text/restructuredtext"
     }

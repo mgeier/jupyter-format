@@ -3,7 +3,7 @@ nbformat_minor 2
 markdown
     This notebook is part of the `jupyter_format` documentation:
     https://jupyter-format.readthedocs.io/.
-  metadata
+ metadata
     {
      "nbsphinx": "hidden"
     }
@@ -39,7 +39,7 @@ markdown
     * [Specification](spec.jupyter)
     * [Conversion](nbconvert.jupyter)
     * [API Documentation](api.jupyter)
-  metadata
+ metadata
     {
      "nbsphinx-toctree": {}
     }

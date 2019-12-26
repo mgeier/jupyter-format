@@ -3,7 +3,7 @@ nbformat_minor 2
 markdown
     This notebook is part of the `jupyter_format` documentation:
     https://jupyter-format.readthedocs.io/.
-  metadata
+ metadata
     {
      "nbsphinx": "hidden"
     }
@@ -200,7 +200,7 @@ code
         This is a code cell:
     code 1
         print('Hello, world!')
-      stream stdout
+     stream stdout
         Hello, world!
     """
 markdown
