@@ -64,7 +64,7 @@ def parse(lines):
 
         cell.source = indented_block(lines)
 
-        for line in IndentedLines(1, lines):
+        for line in indented(1, lines):
             if word('metadata', line):
                 cell.metadata = metadata(lines)
                 # NB: cell metadata must be at the end
@@ -123,7 +123,7 @@ def code_output(line, lines, cell):
         if output_type == 'execute_result':
             kwargs['execution_count'] = cell.execution_count
         kwargs['data'] = mime_bundle(lines)
-        for line in IndentedLines(2, lines):
+        for line in indented(2, lines):
             if not word('metadata', line):
                 raise ParseError(
                     "Only 'metadata' is allowed here, not {!r}".format(line))
@@ -139,14 +139,14 @@ def code_output(line, lines, cell):
     else:
         raise ParseError(
             'Expected output type, got {!r}'.format(line))
-    for line in IndentedLines(2, lines):
+    for line in indented(2, lines):
         raise ParseError('Invalid output data: {!r}'.format(line))
     out = nbformat.v4.new_output(output_type, **kwargs)
     cell.outputs.append(out)
 
 
 def traceback(lines):
-    for line in IndentedLines(2, lines):
+    for line in indented(2, lines):
         if not word('traceback', line):
             raise ParseError(
                 "Expected 'traceback', got {!r}".format(line))
@@ -154,7 +154,7 @@ def traceback(lines):
         while True:
             frame = indented_block(lines)
             traceback.append(frame)
-            for line in IndentedLines(3, lines):
+            for line in indented(3, lines):
                 if word('~', line):
                     break
                 raise ParseError(
@@ -167,7 +167,7 @@ def traceback(lines):
 
 def mime_bundle(lines):
     bundle = {}
-    for line in IndentedLines(3, lines):
+    for line in indented(3, lines):
         mime_type = line
         # TODO: allow whitespace?
         if mime_type != mime_type.strip():
@@ -205,7 +205,7 @@ def parse_json(text):
 
 
 def indented_block(lines):
-    return '\n'.join(IndentedLines(4, lines))
+    return '\n'.join(indented(4, lines))
 
 
 def word_plus_integer(word, line):
@@ -272,27 +272,22 @@ class SourceLines:
         return line
 
 
-class IndentedLines:
+def indented(indentation, lines):
     """Iterator adaptor which stops if there is less indentation.
 
     Blank lines are forwarded as empty lines.
 
     """
-
-    def __init__(self, indentation, iterator):
-        self._indent = indentation
-        self._iter = iterator
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        line = self._iter.peek()
-        if line.startswith(' ' * self._indent):
-            line = line[self._indent:]
+    while True:
+        try:
+            line = lines.peek()
+        except StopIteration:
+            break
+        if line.startswith(' ' * indentation):
+            line = line[indentation:]
         elif not line.strip():
             line = ''  # Blank line
         else:
-            raise StopIteration()
-        self._iter.advance()
-        return line
+            break
+        lines.advance()
+        yield line
