@@ -32,7 +32,7 @@ nbsphinx_custom_formats = {
 nbsphinx_execute_arguments = ['--InlineBackend.figure_formats={"svg", "pdf"}']
 
 jinja_define = """
-{% set docname = env.doc2path(env.docname, base='doc') %}
+{% set docname = 'doc/' + env.doc2path(env.docname, base=None) %}
 {% set latex_href = ''.join([
     '\href{https://github.com/mgeier/jupyter-format/blob/',
     env.config.release,
