@@ -283,7 +283,10 @@ class IndentedLines:
         self._indent = indentation
         self._iter = iterator
 
-    def peek(self):
+    def __iter__(self):
+        return self
+
+    def __next__(self):
         line = self._iter.peek()
         if line.startswith(' ' * self._indent):
             line = line[self._indent:]
@@ -291,15 +294,5 @@ class IndentedLines:
             line = ''  # Blank line
         else:
             raise StopIteration()
-        return line
-
-    def advance(self):
-        return self._iter.advance()
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        line = self.peek()
-        self.advance()
+        self._iter.advance()
         return line
