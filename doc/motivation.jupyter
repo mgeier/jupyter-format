@@ -123,7 +123,7 @@ markdown
     Let's use [PyYAML](https://pyyaml.org) to read this:
 code
     import yaml
-    nb_dict = yaml.load(yaml_content)
+    nb_dict = yaml.safe_load(yaml_content)
     nb_dict
 markdown
     This Python dictionary can easily be converted to a notebook node:
