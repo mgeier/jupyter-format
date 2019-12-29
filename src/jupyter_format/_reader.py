@@ -39,19 +39,19 @@ def deserialize(source):
 
 
 def parse(lines):
-    nb = parse_header(lines)
+    nb = header(lines)
 
     for line in lines:
-        if check_word('markdown', line):
+        if word('markdown', line):
             cell = nbformat.v4.new_markdown_cell()
         elif line.startswith('code'):
             cell = nbformat.v4.new_code_cell()
             if line not in ('code', 'code '):
-                cell.execution_count = check_word_plus_integer('code', line)
-        elif check_word('raw', line):
+                cell.execution_count = word_plus_integer('code', line)
+        elif word('raw', line):
             cell = nbformat.v4.new_raw_cell()
-        elif check_word('metadata', line):
-            nb.metadata = parse_metadata(lines)
+        elif word('metadata', line):
+            nb.metadata = metadata(lines)
             for _ in lines:
                 raise ParseError(
                     'All notebook metadata lines must be indented by 4 spaces '
@@ -62,80 +62,80 @@ def parse(lines):
                 "Expected (unindented) cell type or 'metadata', "
                 "got {!r}".format(line))
 
-        cell.source = parse_indented_text(lines)
+        cell.source = indented_block(lines)
 
         for line in IndentedLines(1, lines):
-            if check_word('metadata', line):
-                cell.metadata = parse_metadata(lines)
+            if word('metadata', line):
+                cell.metadata = metadata(lines)
                 # NB: cell metadata must be at the end
                 break
 
             if cell.cell_type in ('markdown', 'raw'):
                 # attachments (since v4.1)
-                parse_attachment(line, lines, cell)
+                attachment(line, lines, cell)
             elif cell.cell_type == 'code':
-                parse_code_output(line, lines, cell)
+                code_output(line, lines, cell)
         nb.cells.append(cell)
     return nb
 
 
-def parse_header(lines):
+def header(lines):
     nb = nbformat.v4.new_notebook()
 
     for line in lines:
-        nb.nbformat = check_word_plus_integer('nbformat', line)
+        nb.nbformat = word_plus_integer('nbformat', line)
         if nb.nbformat != 4:
             raise ParseError('Only v4 notebooks are currently supported')
         break
     else:
         raise ParseError('First line must be "nbformat X"')
     for line in lines:
-        nb.nbformat_minor = check_word_plus_integer('nbformat_minor', line)
+        nb.nbformat_minor = word_plus_integer('nbformat_minor', line)
         break
     else:
         raise ParseError('Second line must be "nbformat_minor Y"')
     return nb
 
 
-def parse_attachment(line, lines, cell):
+def attachment(line, lines, cell):
     if not line.startswith('attachment'):
         raise ParseError(
             "Only 'attachment' is allowed here, not {!r}".format(line))
     if not hasattr(cell, 'attachments'):
         cell.attachments = {}
-    name = check_word_plus_string('attachment', line)
+    name = word_plus_string('attachment', line)
     if name in cell.attachments:
         raise ParseError(
             'Duplicate attachment name: {!r}'.format(name))
-    cell.attachments[name] = parse_mime_bundle(lines)
+    cell.attachments[name] = mime_bundle(lines)
 
 
-def parse_code_output(line, lines, cell):
+def code_output(line, lines, cell):
     kwargs = {}
     if line.startswith('stream'):
         output_type = 'stream'
         # NB: "name" is required!
-        kwargs['name'] = check_word_plus_string('stream', line)
-        kwargs['text'] = parse_indented_text(lines)
-    elif (check_word('display_data', line) or
-            check_word('execute_result', line)):
+        kwargs['name'] = word_plus_string('stream', line)
+        kwargs['text'] = indented_block(lines)
+    elif (word('display_data', line) or
+            word('execute_result', line)):
         output_type = line
         if output_type == 'execute_result':
             kwargs['execution_count'] = cell.execution_count
-        kwargs['data'] = parse_mime_bundle(lines)
+        kwargs['data'] = mime_bundle(lines)
         for line in IndentedLines(2, lines):
-            if not check_word('metadata', line):
+            if not word('metadata', line):
                 raise ParseError(
                     "Only 'metadata' is allowed here, not {!r}".format(line))
-            kwargs['metadata'] = parse_metadata(lines)
+            kwargs['metadata'] = metadata(lines)
             break
     elif line.startswith('error'):
         output_type = 'error'
         # NB: All fields are required
-        kwargs['ename'] = check_word_plus_string('error', line)
+        kwargs['ename'] = word_plus_string('error', line)
         # TODO: check for non-empty?
-        kwargs['evalue'] = parse_indented_text(lines)
-        kwargs['traceback'] = parse_traceback(lines)
+        kwargs['evalue'] = indented_block(lines)
+        kwargs['traceback'] = traceback(lines)
     else:
         raise ParseError(
             'Expected output type, got {!r}'.format(line))
@@ -145,17 +145,17 @@ def parse_code_output(line, lines, cell):
     cell.outputs.append(out)
 
 
-def parse_traceback(lines):
+def traceback(lines):
     for line in IndentedLines(2, lines):
-        if not check_word('traceback', line):
+        if not word('traceback', line):
             raise ParseError(
                 "Expected 'traceback', got {!r}".format(line))
         traceback = []
         while True:
-            frame = parse_indented_text(lines)
+            frame = indented_block(lines)
             traceback.append(frame)
             for line in IndentedLines(3, lines):
-                if check_word('~', line):
+                if word('~', line):
                     break
                 raise ParseError(
                     'Invalid traceback separator: {!r}'.format(line))
@@ -165,7 +165,7 @@ def parse_traceback(lines):
     raise ParseError("Missing 'traceback'")
 
 
-def parse_mime_bundle(lines):
+def mime_bundle(lines):
     bundle = {}
     for line in IndentedLines(3, lines):
         mime_type = line
@@ -174,7 +174,7 @@ def parse_mime_bundle(lines):
             # TODO: better error message?
             raise ParseError('Invalid MIME type: {!r}'.format(mime_type))
         # TODO: check for repeated MIME type?
-        content = parse_indented_text(lines)
+        content = indented_block(lines)
         if content:
             content += '\n'
         if RE_JSON.match(mime_type):
@@ -186,8 +186,8 @@ def parse_mime_bundle(lines):
     return bundle
 
 
-def parse_metadata(lines):
-    return parse_json(parse_indented_text(lines))
+def metadata(lines):
+    return parse_json(indented_block(lines))
 
 
 def parse_json(text):
@@ -204,11 +204,11 @@ def parse_json(text):
     return data
 
 
-def parse_indented_text(lines):
+def indented_block(lines):
     return '\n'.join(IndentedLines(4, lines))
 
 
-def check_word_plus_integer(word, line):
+def word_plus_integer(word, line):
     m = re.match(word + ' ([0-9]|[1-9][0-9]+)$', line)
     if not m:
         raise ParseError(
@@ -216,7 +216,7 @@ def check_word_plus_integer(word, line):
     return int(m.group(1))
 
 
-def check_word_plus_string(word, line):
+def word_plus_string(word, line):
     chars = len(word)
     # TODO: check if line[chars + 1] is a space?
     # TODO: use split() or partition()?
@@ -225,7 +225,7 @@ def check_word_plus_string(word, line):
     return line[chars + 1:]
 
 
-def check_word(word, line):
+def word(word, line):
     if line.startswith(word):
         if line != word:
             raise ParseError('No text allowed after {!r}'.format(word))
@@ -303,5 +303,3 @@ class IndentedLines:
         line = self.peek()
         self.advance()
         return line
-
-
