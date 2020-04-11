@@ -77,8 +77,8 @@ def code_cell_output(out):
                 yield separator
             else:
                 separator = '   ~\n'
-            for line in frame.splitlines():
-                yield '    ' + line + '\n'
+            for l in frame.splitlines():
+                yield '    ' + l + '\n'
     else:
         raise RuntimeError('Unknown output type: {!r}'.format(out.output_type))
 
@@ -113,8 +113,8 @@ def json_block(key, value):
 
 
 def indented_block(text):
-    for line in text.splitlines():
-        yield ' ' * 4 + line + '\n'
+    for l in text.splitlines():
+        yield ' ' * 4 + l + '\n'
 
 
 def serialize_json(data):
