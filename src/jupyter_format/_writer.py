@@ -34,9 +34,9 @@ def generate_lines(nb):
         else:
             raise RuntimeError('Unknown cell type: {!r}'.format(cell_type))
         if cell.metadata:
-            yield from json_block(' metadata', cell.metadata)
+            yield from json_block(' cell_metadata', cell.metadata)
     if nb.metadata:
-        yield from json_block('metadata', nb.metadata)
+        yield from json_block('notebook_metadata', nb.metadata)
 
 
 def serialize(nb):
@@ -66,7 +66,7 @@ def code_cell_output(out):
         if out.data:
             yield from mime_bundle(out.data)
         if out.metadata:
-            yield from json_block('  metadata', out.metadata)
+            yield from json_block('  output_metadata', out.metadata)
     elif out.output_type == 'error':
         yield line(' ', 'error', out.ename)
         yield from indented_block(out.evalue)

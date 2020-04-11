@@ -3,7 +3,7 @@ nbformat_minor 2
 markdown
     This notebook is part of the `jupyter_format` documentation:
     https://jupyter-format.readthedocs.io/.
- metadata
+ cell_metadata
     {
      "nbsphinx": "hidden"
     }
@@ -39,11 +39,11 @@ markdown
     * [Specification](spec.jupyter)
     * [Conversion](nbconvert.jupyter)
     * [API Documentation](api.jupyter)
- metadata
+ cell_metadata
     {
      "nbsphinx-toctree": {}
     }
-metadata
+notebook_metadata
     {
      "kernelspec": {
       "display_name": "Python 3",

@@ -3,7 +3,7 @@ nbformat_minor 2
 markdown
     This notebook is part of the `jupyter_format` documentation:
     https://jupyter-format.readthedocs.io/.
- metadata
+ cell_metadata
     {
      "nbsphinx": "hidden"
     }
@@ -19,7 +19,7 @@ markdown
     If you have ideas for improving the (currently informal) specification or the
     example implementation, please open an issue or pull request at
     https://github.com/mgeier/jupyter-format/.
-metadata
+notebook_metadata
     {
      "kernelspec": {
       "display_name": "Python 3",

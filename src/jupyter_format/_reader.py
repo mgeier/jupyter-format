@@ -50,7 +50,7 @@ def parse(lines):
                 cell.execution_count = word_plus_integer('code', line)
         elif word('raw', line):
             cell = nbformat.v4.new_raw_cell()
-        elif word('metadata', line):
+        elif word('notebook_metadata', line):
             nb.metadata = metadata(lines)
             for _ in lines:
                 raise ParseError(
@@ -59,13 +59,13 @@ def parse(lines):
             break
         else:
             raise ParseError(
-                "Expected (unindented) cell type or 'metadata', "
+                "Expected (unindented) cell type or 'notebook_metadata', "
                 "got {!r}".format(line))
 
         cell.source = indented_block(lines)
 
         for line in indented(1, lines):
-            if word('metadata', line):
+            if word('cell_metadata', line):
                 cell.metadata = metadata(lines)
                 # NB: cell metadata must be at the end
                 break
@@ -124,9 +124,10 @@ def code_output(line, lines, cell):
             kwargs['execution_count'] = cell.execution_count
         kwargs['data'] = mime_bundle(lines)
         for line in indented(2, lines):
-            if not word('metadata', line):
+            if not word('output_metadata', line):
                 raise ParseError(
-                    "Only 'metadata' is allowed here, not {!r}".format(line))
+                    "Only 'output_metadata' is allowed here, not {!r}"
+                    .format(line))
             kwargs['metadata'] = metadata(lines)
             break
     elif line.startswith('error'):
