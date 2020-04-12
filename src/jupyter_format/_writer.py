@@ -71,12 +71,9 @@ def code_cell_output(out):
         yield line(' ', 'error', out.ename)
         yield from indented_block(out.evalue)
         yield line('  ', 'traceback')
-        separator = ''
-        for frame in out.traceback:
-            if separator:
-                yield separator
-            else:
-                separator = '   -\n'
+        for i, frame in enumerate(out.traceback):
+            if i:
+                yield '   -\n'
             for l in frame.splitlines():
                 yield '    ' + l + '\n'
     else:
