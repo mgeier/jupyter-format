@@ -76,7 +76,7 @@ def code_cell_output(out):
             if separator:
                 yield separator
             else:
-                separator = '   ~\n'
+                separator = '   -\n'
             for l in frame.splitlines():
                 yield '    ' + l + '\n'
     else:

@@ -156,7 +156,7 @@ def traceback(lines):
             frame = indented_block(lines)
             traceback.append(frame)
             for line in indented(3, lines):
-                if word('~', line):
+                if word('-', line):
                     break
                 raise ParseError(
                     'Invalid traceback separator: {!r}'.format(line))
