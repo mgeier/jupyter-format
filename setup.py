@@ -18,7 +18,6 @@ setup(
     author_email='Matthias.Geier@gmail.com',
     description='An Experimental New Storage Format For Jupyter Notebooks',
     long_description=open('README.rst').read(),
-    license='MIT',
     keywords=''.split(),
     url='https://jupyter-format.readthedocs.io/',
     project_urls={
@@ -30,7 +29,7 @@ setup(
     classifiers=[
         'Framework :: Jupyter',
         'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: MIT License',
+        'License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',

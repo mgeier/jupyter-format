@@ -1,6 +1,5 @@
 project = 'Jupyter Format'
 author = 'Matthias Geier'
-copyright = '2019, ' + author
 
 extensions = [
     'nbsphinx',
@@ -93,6 +92,7 @@ html_theme_options = {
     'collapse_navigation': False,
 }
 html_sourcelink_suffix = ''
+html_show_copyright = False
 html_scaled_image_link = False
 
 # -- Options for LaTeX output ---------------------------------------------
