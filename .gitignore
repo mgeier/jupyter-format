@@ -1,0 +1,7 @@
+/build/
+/src/jupyter_format.egg-info/
+__pycache__/
+.ipynb_checkpoints/
+/doc/my-new-notebook.ipynb
+/doc/my-new-notebook.jupyter
+/doc/my-new-notebook.html
