@@ -45,19 +45,14 @@ jinja_define = """
 """
 
 nbsphinx_prolog = jinja_define + r"""
-.. only:: html
+.. raw:: html
 
-    .. role:: raw-html(raw)
-        :format: html
-
-    .. nbinfo::
-
-        This page was generated from `{{ docname }}`__.
-        Interactive online version:
-        :raw-html:`<a href="https://mybinder.org/v2/gh/mgeier/jupyter-format/{{ env.config.release }}?filepath={{ docname }}"><img alt="Binder badge" src="https://mybinder.org/badge_logo.svg" style="vertical-align:text-bottom"></a>`
-
-    __ https://github.com/mgeier/jupyter-format/blob/
-        {{ env.config.release }}/{{ docname }}
+    <div class="admonition note">
+      This page was generated from
+      <a class="reference external" href="https://github.com/mgeier/jupyter-format/blob/{{ env.config.release|e }}/{{ docname|e }}">{{ docname|e }}</a>.
+      Interactive online version:
+      <span style="white-space: nowrap;"><a href="https://mybinder.org/v2/gh/mgeier/jupyter-format/{{ env.config.release|e }}?filepath={{ docname|e }}"><img alt="Binder badge" src="https://mybinder.org/badge_logo.svg" style="vertical-align:text-bottom"></a>.</span>
+    </div>
 
 .. raw:: latex
 
