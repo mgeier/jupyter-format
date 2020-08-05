@@ -17,7 +17,7 @@ markdown
     
     <div class="alert alert-info">
     
-    **Note:**
+    Note
     
     All source files for this documentation are Jupyter notebooks
     stored in the proposed new storage format.
@@ -26,7 +26,7 @@ markdown
     
     <div class="alert alert-warning">
     
-    **WARNING:**
+    WARNING
     
     This is in an experimental state.
     Neither the format nor the implementation is stable and
