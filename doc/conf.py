@@ -6,11 +6,12 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     'sphinx.ext.intersphinx',
+    'sphinx_last_updated_by_git',
 ]
 
 highlight_language = 'none'
 master_doc = 'index'
-exclude_patterns = ['**.ipynb_checkpoints', 'my-new-notebook.*']
+exclude_patterns = ['my-new-notebook.*']
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
@@ -87,13 +88,10 @@ except Exception:
 # -- Options for HTML output ----------------------------------------------
 
 html_title = project + ' version ' + release
-html_theme = 'sphinx_rtd_theme'
-html_theme_options = {
-    'collapse_navigation': False,
-}
-html_sourcelink_suffix = ''
+html_theme = 'insipid'
 html_show_copyright = False
-html_scaled_image_link = False
+html_add_permalinks = '\N{SECTION SIGN}'
+html_copy_source = False
 
 # -- Options for LaTeX output ---------------------------------------------
 

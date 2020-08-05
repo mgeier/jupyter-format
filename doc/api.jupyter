@@ -23,7 +23,7 @@ raw
     
     .. autofunction:: deserialize
     
-    .. autoclass:: ParseError
+    .. autoexception:: ParseError
  cell_metadata
     {
      "raw_mimetype": "text/restructuredtext"

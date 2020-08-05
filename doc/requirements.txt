@@ -1,5 +1,6 @@
-sphinx>=1.8
+insipid-sphinx-theme
 nbsphinx
 notebook
 nbconvert
 pyyaml
+sphinx-last-updated-by-git
