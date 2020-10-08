@@ -8,4 +8,5 @@ Source code repository (and issue tracker):
     https://github.com/mgeier/jupyter-format/
 
 License:
-    MIT -- see the file ``LICENSE`` for details.
+    Dedicated to the public domain using CC0 --
+    see the file ``LICENSE`` for details.
