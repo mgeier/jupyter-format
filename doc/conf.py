@@ -85,7 +85,7 @@ except Exception:
 html_title = project + ' version ' + release
 html_theme = 'insipid'
 html_show_copyright = False
-html_add_permalinks = '\N{SECTION SIGN}'
+html_permalinks_icon = '§'
 html_copy_source = False
 
 # -- Options for LaTeX output ---------------------------------------------
