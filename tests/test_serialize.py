@@ -10,7 +10,7 @@ def nb():
 
 def test_minimal_notebook(nb):
     nb.nbformat_minor = 1
-    assert serialize(nb) == 'nbformat 4\nnbformat_minor 1\n'
+    assert serialize(nb) == 'nbformat 4.1\n'
 
 
 def test_only_version_4_is_allowed(nb):
