@@ -1,13 +1,12 @@
-nbformat 4
-nbformat_minor 2
-markdown
+nbformat 4.5
+markdown id:53fca344
     This notebook is part of the `jupyter_format` documentation:
     https://jupyter-format.readthedocs.io/.
- cell_metadata
+- metadata
     {
      "nbsphinx": "hidden"
     }
-markdown
+markdown id:0ba983eb
     # Notebook format conversions with `nbconvert`
     
     During the installation of `jupyter_format`
@@ -31,43 +30,43 @@ markdown
         python3 -m nbconvert --to html-from-jupyter my-new-notebook.jupyter
     
     Same for `slides-from-jupyter`, `latex-from-jupyter`, `pdf-from-jupyter` etc.
-markdown
+markdown id:94febd24
     But enough for the theory, let's try it with this very notebook, shall we?
-code
+code id:dd0868f3
     !python3 -m nbconvert --to ipynb-from-jupyter nbconvert.jupyter --output=my-new-notebook
-markdown
+markdown id:3a321b0f
     Just to make sure it is actually using Jupyter's JSON format,
     let's peek at the beginning of the file:
-code
+code id:70bad37b
     !head my-new-notebook.ipynb
-markdown
+markdown id:04ad63da
     Here's a link to the new file for your perusal:
     [my-new-notebook.ipynb](my-new-notebook.ipynb).
     
     Now let's convert this back to `.jupyter`:
-code
+code id:8f45b83e
     !python3 -m nbconvert --to jupyter my-new-notebook.ipynb
-markdown
+markdown id:e2f0490e
     Again, we take a peek:
-code
+code id:d4b0e440
     !head my-new-notebook.jupyter
-markdown
+markdown id:bf79ac3d
     And a link for closer inspection:
     [my-new-notebook.jupyter](my-new-notebook.jupyter).
     
     Finally, let's try to convert this `.jupyter` file to an HTML page:
-code
+code id:e422893b
     !python3 -m nbconvert --to html-from-jupyter my-new-notebook.jupyter
-code
+code id:90508796
     from IPython.display import IFrame
     IFrame('my-new-notebook.html', width='100%', height=350)
-markdown
+markdown id:54824a31
     And for completeness' sake, a link:
     [my-new-notebook.html](my-new-notebook.html).
-notebook_metadata
+metadata
     {
      "kernelspec": {
-      "display_name": "Python 3",
+      "display_name": "Python 3 (ipykernel)",
       "language": "python",
       "name": "python3"
      },
@@ -81,6 +80,6 @@ notebook_metadata
       "name": "python",
       "nbconvert_exporter": "python",
       "pygments_lexer": "ipython3",
-      "version": "3.7.2+"
+      "version": "3.10.6"
      }
     }

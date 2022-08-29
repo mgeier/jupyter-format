@@ -1,13 +1,12 @@
-nbformat 4
-nbformat_minor 2
-markdown
+nbformat 4.5
+markdown id:a8872384
     This notebook is part of the `jupyter_format` documentation:
     https://jupyter-format.readthedocs.io/.
- cell_metadata
+- metadata
     {
      "nbsphinx": "hidden"
     }
-markdown
+markdown id:7dc8dcbd
     # Motivation
     
     ## Status Quo
@@ -34,10 +33,10 @@ markdown
     a literal backslash occurring in the text
     (which is quite common in programming languages and markup languages)
     has to be escaped itself (`\\`).
-markdown
+markdown id:c3712a00
     As an example, let's create a notebook
     containing the previous two sentences:
-code
+code id:12d52ec9
     import nbformat
     nb = nbformat.v4.new_notebook()
     nb.cells.append(nbformat.v4.new_markdown_cell(
@@ -49,11 +48,11 @@ code
     a literal backslash occurring in the text
     (which is quite common in programming languages and markup languages)
     has to be escaped itself (`\\`)."""))
-markdown
+markdown id:e8e345c6
     The JSON-based storage of this minimal notebook looks like this:
-code
+code id:afa246e0
     print(nbformat.writes(nb))
-markdown
+markdown id:fded3ccd
     Escaped characters and JSON syntax elements
     make this harder than necessary to read,
     and even harder to modify with a text editor.
@@ -63,13 +62,13 @@ markdown
     
     As a comparison,
     the same notebook is stored like this in the proposed new format:
-code
+code id:04f29cf9
     import jupyter_format
     print(jupyter_format.serialize(nb))
-markdown
+markdown id:293250d8
     This is exactly the same as the original Markdown content,
     except that it is indented by 4 spaces.
-markdown
+markdown id:0eed526a
     ## YAML as Almost-Solution
     
     It has been known for a long time
@@ -92,9 +91,9 @@ markdown
     
     * https://github.com/prabhuramachandran/ipyaml
     * https://github.com/mdboom/nbconvert_vc
-markdown
+markdown id:1c2d3e2f
     This is an example how a YAML-based storage format could look like:
-code
+code id:ff19ea38
     yaml_content = """
     nbformat: 4
     nbformat_minor: 2
@@ -117,30 +116,30 @@ code
       metadata: {}
     metadata: {}
     """
-markdown
+markdown id:40c02a9a
     This is valid YAML, compatible with both version 1.1 and 1.2.
     
     Let's use [PyYAML](https://pyyaml.org) to read this:
-code
+code id:a240562f
     import yaml
     nb_dict = yaml.safe_load(yaml_content)
     nb_dict
-markdown
+markdown id:54e7ff4b
     This Python dictionary can easily be converted to a notebook node:
-code
+code id:1cb83eb0
     nb = nbformat.from_dict(nb_dict)
-markdown
+markdown id:38f0fbaa
     And we can use `nbconvert` to convert this to HTML:
-code
+code id:c8f856db
     from nbconvert.exporters import HTMLExporter
     html_content, resources = HTMLExporter().from_notebook_node(nb)
-code
+code id:02a8654f
     import urllib
     data_uri = 'data:text/html;charset=utf-8,' + urllib.parse.quote(html_content)
-code
+code id:8040a416
     from IPython.display import IFrame
     IFrame(data_uri, width='100%', height='250')
-markdown
+markdown id:4a338328
     This looks promising, doesn't it?
     
     The problem is, as so often, in the details.
@@ -157,7 +156,7 @@ markdown
     * Go back to escaped strings, at least in some circumstances.
       But that's exactly what we wanted to avoid by using YAML!
     * Don't use YAML after all
-markdown
+markdown id:cb1d09c6
     ## Other Partial Solutions
     
     Some alternative notebook formats are supported by the very popular projects
@@ -169,7 +168,7 @@ markdown
     
     
     
-markdown
+markdown id:ce1b5fe9
     ## The Need for a Custom Format
     
     Looks like none of the existing formats are sufficient.
@@ -181,9 +180,9 @@ markdown
     probably we can get away with it?
     
     Remember the YAML example from [above](#YAML-as-Almost-Solution)?
-code
+code id:d55b7fa3
     print(yaml_content)
-markdown
+markdown id:e0a8cd81
     The contained text (Markdown and Python source code)
     is quite readable,
     but it is still stuffed with many distracting things inbetween.
@@ -191,7 +190,7 @@ markdown
     Since we are not limited by YAML anymore,
     we can agressively reduce this to only contain
     the absolutely necessary information:
-code
+code id:b96fb7a2
     content = """nbformat 4
     nbformat_minor 2
     markdown
@@ -203,18 +202,18 @@ code
      stream stdout
         Hello, world!
     """
-markdown
+markdown id:3b3d7a5b
     And that's the proposed new format!
     
     It can be converted to a notebook node
     (which will look the same as in the YAML example above):
-code
+code id:a9c8813b
     jupyter_format.deserialize(content)
-markdown
+markdown id:591fe6b1
     Just to make sure it is a valid Jupyter notebook node:
-code
+code id:f1e79860
     nbformat.validate(_)
-markdown
+markdown id:d2191df7
     ## Complementary Tools
     
     Oftentimes cell outputs (e.g. plots) stored in notebooks
@@ -267,10 +266,10 @@ markdown
     meaningful "diffs" for Jupyter notebooks:
     
     * https://github.com/jupyter/nbdime
-notebook_metadata
+metadata
     {
      "kernelspec": {
-      "display_name": "Python 3",
+      "display_name": "Python 3 (ipykernel)",
       "language": "python",
       "name": "python3"
      },
@@ -284,6 +283,6 @@ notebook_metadata
       "name": "python",
       "nbconvert_exporter": "python",
       "pygments_lexer": "ipython3",
-      "version": "3.7.2+"
+      "version": "3.10.6"
      }
     }
