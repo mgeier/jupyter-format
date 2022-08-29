@@ -54,6 +54,7 @@ def deserialize(source):
 
     while next_line is not None:
         cell_type, _, arguments = next_line.partition(' ')
+        arguments = arguments.lstrip()
         cell_content = []
         for i, next_line in lines:
             if next_line == '' or next_line[0] in (' ', '-'):
@@ -71,15 +72,20 @@ def deserialize(source):
         elif cell_type == 'raw':
             cell = parse_raw_cell(arguments, cell_content)
         elif cell_type == 'metadata':
-            parse_metadata(arguments, cell_content)
+            nb.metadata = parse_metadata(arguments, cell_content)
             # No more cells are allowed after metadata
             break
         else:
             # TODO: error handling
+
+            #"Expected (unindented) cell type or 'notebook_metadata', "
+            #"got {!r}".format(line))
             raise NotImplementedError
         nb.cells.append(cell)
 
     if next_line is not None:
+        #'All notebook metadata lines must be indented by 4 spaces '
+        #'and no subsequent lines are allowed')
         raise ParseError(
             'Unexpected content after notebook metadata: {next_line!r}', i)
 
@@ -91,49 +97,52 @@ def parse_integer(text):
     return re.fullmatch('[0-9]|[1-9][0-9]+', text) and int(text)
 
 
+def parse_markdown_cell(arguments, cell_content):
+    # TODO: parse ID
+
+    cell = nbformat.v4.new_markdown_cell()
+
+    cell.source = ???
+
+    # TODO: parse attachments
+
+    # TODO: parse cell metadata
+
+    return cell
 
 
+def parse_code_cell(arguments, cell_content):
+    # TODO: parse execution_count
+
+    # TODO: parse ID
+
+    cell = nbformat.v4.new_code_cell()
+
+    cell.execution_count = ???
+
+    cell.source = ???
+
+    # TODO: parse cell outputs
+
+    # TODO: parse cell metadata
+
+    return cell
 
 
-def parse(lines):
-    nb = header(lines)
+def parse_raw_cell(arguments, cell_content):
+    # TODO: parse ID
 
-    for line in lines:
-        if word('markdown', line):
-            cell = nbformat.v4.new_markdown_cell()
-        elif line.startswith('code'):
-            cell = nbformat.v4.new_code_cell()
-            if line not in ('code', 'code '):
-                cell.execution_count = word_plus_integer('code', line)
-        elif word('raw', line):
-            cell = nbformat.v4.new_raw_cell()
-        elif word('notebook_metadata', line):
-            nb.metadata = metadata(lines)
-            for _ in lines:
-                raise ParseError(
-                    'All notebook metadata lines must be indented by 4 spaces '
-                    'and no subsequent lines are allowed')
-            break
-        else:
-            raise ParseError(
-                "Expected (unindented) cell type or 'notebook_metadata', "
-                "got {!r}".format(line))
+    cell = nbformat.v4.new_raw_cell()
 
-        cell.source = indented_block(lines)
+    cell.source = ???
 
-        for line in indented(1, lines):
-            if word('cell_metadata', line):
-                cell.metadata = metadata(lines)
-                # NB: cell metadata must be at the end
-                break
+    # TODO: parse attachments
 
-            if cell.cell_type in ('markdown', 'raw'):
-                # attachments (since v4.1)
-                attachment(line, lines, cell)
-            elif cell.cell_type == 'code':
-                code_output(line, lines, cell)
-        nb.cells.append(cell)
-    return nb
+    # TODO: parse cell metadata
+
+    return cell
+
+
 
 
 def attachment(line, lines, cell):
