@@ -15,14 +15,15 @@ def generate_lines(nb):
     """
     if nb.nbformat != 4:
         raise RuntimeError('Currently, only notebook version 4 is supported')
-    yield line('', 'nbformat', nb.nbformat)
-    yield line('', 'nbformat_minor', nb.nbformat_minor)
+    yield line('nbformat', f'{nb.nbformat}.{nb.nbformat_minor}')
     for cell in nb.cells:
         cell_type = cell.cell_type
+        arguments = []
         if cell_type == 'code' and cell.execution_count is not None:
-            yield line('', 'code', cell.execution_count)
-        else:
-            yield line('', cell_type)
+            arguments.append(str(cell.execution_count))
+        if cell.id is not None:
+            arguments.append(f'id:{cell.id}')
+        yield line(cell_type, ' '.join(arguments))
         yield from indented_block(cell.source + '\n')
         if cell_type in ('markdown', 'raw'):
             # attachments (since v4.1)
@@ -32,11 +33,11 @@ def generate_lines(nb):
             for out in cell.outputs:
                 yield from code_cell_output(out)
         else:
-            raise RuntimeError('Unknown cell type: {!r}'.format(cell_type))
+            raise RuntimeError(f'Unknown cell type: {cell_type!r}')
         if cell.metadata:
-            yield from json_block(' cell_metadata', cell.metadata)
+            yield from json_block('- metadata', cell.metadata)
     if nb.metadata:
-        yield from json_block('notebook_metadata', nb.metadata)
+        yield from json_block('metadata', nb.metadata)
 
 
 def serialize(nb):
@@ -51,31 +52,31 @@ def serialize(nb):
 
 
 def attachment(name, data):
-    yield line(' ', 'attachment', name)
+    yield line('- attachment', name)
     yield from mime_bundle(data)
 
 
 def code_cell_output(out):
     if out.output_type == 'stream':
         # NB: "name" is required!
-        yield line(' ', 'stream', out.name)
+        yield line('- stream', out.name)
         yield from indented_block(out.text)
     elif out.output_type in ('display_data', 'execute_result'):
-        yield line(' ', out.output_type)
         # TODO: check if out.execution_count matches cell.execution_count?
+        header = f'- {out.output_type}'
+        if out.metadata:
+            yield from json_block(header, out.metadata)
+        else:
+            yield line(header)
         if out.data:
             yield from mime_bundle(out.data)
-        if out.metadata:
-            yield from json_block('  output_metadata', out.metadata)
     elif out.output_type == 'error':
-        yield line(' ', 'error', out.ename)
+        yield line('- error', out.ename)
         yield from indented_block(out.evalue)
-        yield line('  ', 'traceback')
-        for i, frame in enumerate(out.traceback):
-            if i:
-                yield '   -\n'
+        for frame in out.traceback:
+            yield '  --\n'
             for l in frame.splitlines():
-                yield '    ' + l + '\n'
+                yield ' ' * 4 + l + '\n'
     else:
         raise RuntimeError('Unknown output type: {!r}'.format(out.output_type))
 
@@ -85,18 +86,18 @@ def mime_bundle(data):
     # TODO: alphabetically, by importance?
     for k, v in data.items():
         if RE_JSON.match(k):
-            yield from json_block('   ' + k, v)
+            yield from json_block('  - ' + k, v)
         else:
             if v.endswith('\n') and v.strip('\n'):
                 v += '\n'
-            yield from text_block('   ' + k, v)
+            yield from text_block('  - ' + k, v)
 
 
-def line(prefix, key, value=None):
-    if value is None:
-        return '{}{}\n'.format(prefix, key)
+def line(key, value=''):
+    if value:
+        return f'{key} {value}\n'
     else:
-        return '{}{} {}\n'.format(prefix, key, value)
+        return f'{key}\n'
 
 
 def text_block(key, value):
