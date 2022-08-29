@@ -26,18 +26,18 @@ def deserialize(source):
         source = source.splitlines()
     lines = enumerate((line.rstrip('\n') for line in source), 1)
 
-    for i, line in lines:
+    try:
+        i, line = next(lines)
         line = line.rstrip()
         name, _, version = line.partition(' ')
         major, _, minor = version.partition('.')
         major = parse_integer(major)
         minor = parse_integer(minor)
-        if name != 'nbformat' or None in [major, minor]:
+        if name != 'nbformat' or None in (major, minor):
             raise ParseError(
                 "Expected 'nbformat X.Y', with integers X and Y, "
                 f'got {line!r}', i)
-        break
-    else:
+    except StopIteration:
         raise ParseError('First line missing, expected "nbformat X.Y"')
 
     if major != 4:
@@ -47,16 +47,47 @@ def deserialize(source):
     nb.nbformat = major
     nb.nbformat_minor = minor
 
+    try:
+        i, next_line = next(lines)
+    except StopIteration:
+        return nb
 
+    while next_line is not None:
+        cell_type, _, arguments = next_line.partition(' ')
+        cell_content = []
+        for i, next_line in lines:
+            if next_line == '' or next_line[0] in (' ', '-'):
+                cell_content.append((i, next_line))
+            else:
+                break
+        else:
+            # End of input
+            next_line = None
 
+        if cell_type == 'markdown':
+            cell = parse_markdown_cell(arguments, cell_content)
+        elif cell_type == 'code':
+            cell = parse_code_cell(arguments, cell_content)
+        elif cell_type == 'raw':
+            cell = parse_raw_cell(arguments, cell_content)
+        elif cell_type == 'metadata':
+            parse_metadata(arguments, cell_content)
+            # No more cells are allowed after metadata
+            break
+        else:
+            # TODO: error handling
+            raise NotImplementedError
+        nb.cells.append(cell)
 
-
+    if next_line is not None:
+        raise ParseError(
+            'Unexpected content after notebook metadata: {next_line!r}', i)
 
     return nb
 
 
 def parse_integer(text):
-    # NB: Leading zeros are not allowed.
+    # NB: Leading zeros and +/- are not allowed.
     return re.fullmatch('[0-9]|[1-9][0-9]+', text) and int(text)
 
 
@@ -102,24 +133,6 @@ def parse(lines):
             elif cell.cell_type == 'code':
                 code_output(line, lines, cell)
         nb.cells.append(cell)
-    return nb
-
-
-def header(lines):
-    nb = nbformat.v4.new_notebook()
-
-    for line in lines:
-        nb.nbformat = word_plus_integer('nbformat', line)
-        if nb.nbformat != 4:
-            raise ParseError('Only v4 notebooks are currently supported')
-        break
-    else:
-        raise ParseError('First line must be "nbformat X"')
-    for line in lines:
-        nb.nbformat_minor = word_plus_integer('nbformat_minor', line)
-        break
-    else:
-        raise ParseError('Second line must be "nbformat_minor Y"')
     return nb
 
 
