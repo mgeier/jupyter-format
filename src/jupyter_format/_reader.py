@@ -12,7 +12,7 @@ def deserialize(source):
     """Convert ``.jupyter`` string representation to Jupyter notebook.
 
     Lines have to be terminated with ``'\\n'``
-    (a.k.a.  :term:`universal newlines` mode).
+    (a.k.a. :term:`universal newlines` mode).
 
     If *source* is an iterable, line terminators may be omitted.
 
@@ -22,20 +22,46 @@ def deserialize(source):
     :rtype: nbformat.NotebookNode
 
     """
-    lines = SourceLines(source)
-    try:
-        nb = parse(lines)
-    except ParseError as e:
-        if len(e.args) == 1:
-            # Add line number
-            e.args += lines.current,
-        elif len(e.args) == 2:
-            # Apply line number offset
-            e.args = e.args[0], lines.current - e.args[1]
-        raise e
-    except Exception as e:
-        raise ParseError(type(e).__name__ + ': ' + str(e), lines.current)
+    if isinstance(source, str):
+        source = source.splitlines()
+    lines = enumerate((line.rstrip('\n') for line in source), 1)
+
+    for i, line in lines:
+        line = line.rstrip()
+        name, _, version = line.partition(' ')
+        major, _, minor = version.partition('.')
+        major = parse_integer(major)
+        minor = parse_integer(minor)
+        if name != 'nbformat' or None in [major, minor]:
+            raise ParseError(
+                "Expected 'nbformat X.Y', with integers X and Y, "
+                f'got {line!r}', i)
+        break
+    else:
+        raise ParseError('First line missing, expected "nbformat X.Y"')
+
+    if major != 4:
+        raise ParseError('Only v4 notebooks are currently supported', 1)
+
+    nb = nbformat.v4.new_notebook()
+    nb.nbformat = major
+    nb.nbformat_minor = minor
+
+
+
+
+
+
     return nb
+
+
+def parse_integer(text):
+    # NB: Leading zeros are not allowed.
+    return re.fullmatch('[0-9]|[1-9][0-9]+', text) and int(text)
+
+
+
+
 
 
 def parse(lines):
