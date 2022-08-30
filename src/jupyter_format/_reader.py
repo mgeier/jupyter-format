@@ -54,7 +54,17 @@ def deserialize(source):
 
     while next_line is not None:
         cell_type, _, arguments = next_line.partition(' ')
-        arguments = arguments.lstrip()
+
+
+        if cell_type == 'code':
+            # TODO: optionally parse execution_count, remove from arguments
+            pass
+
+        # TODO: parse cell ID
+
+
+
+
         cell_content = []
         for i, next_line in lines:
             if next_line == '' or next_line[0] in (' ', '-'):
@@ -65,6 +75,8 @@ def deserialize(source):
             # End of input
             next_line = None
 
+        # Additional whitespace between arguments is allowed for convenience:
+        arguments = arguments.split()
         if cell_type == 'markdown':
             cell = parse_markdown_cell(arguments, cell_content)
         elif cell_type == 'code':
@@ -78,9 +90,11 @@ def deserialize(source):
         else:
             # TODO: error handling
 
-            #"Expected (unindented) cell type or 'notebook_metadata', "
+            #"Expected (unindented) cell type or 'metadata', "
             #"got {!r}".format(line))
             raise NotImplementedError
+        if cell_id:
+            cell.id = cell_id
         nb.cells.append(cell)
 
     if next_line is not None:
@@ -92,17 +106,18 @@ def deserialize(source):
     return nb
 
 
-def parse_integer(text):
-    # NB: Leading zeros and +/- are not allowed.
-    return re.fullmatch('[0-9]|[1-9][0-9]+', text) and int(text)
-
-
 def parse_markdown_cell(arguments, cell_content):
-    # TODO: parse ID
-
     cell = nbformat.v4.new_markdown_cell()
+    if len(arguments) == 1:
+        cell.id = arguments[0]
+    elif len(arguments) > 1:
+        # TODO: obtain line number
+        raise ParseError('Only one argument (the cell ID) is allowed in markdown cells')
 
-    cell.source = ???
+
+
+
+    cell.source = parse_indented_block(cell_content)
 
     # TODO: parse attachments
 
@@ -114,13 +129,14 @@ def parse_markdown_cell(arguments, cell_content):
 def parse_code_cell(arguments, cell_content):
     # TODO: parse execution_count
 
-    # TODO: parse ID
-
     cell = nbformat.v4.new_code_cell()
 
     cell.execution_count = ???
 
-    cell.source = ???
+    cell_id = ???.strip()
+    if cell_id:
+        cell.id = cell_id
+    cell.source = parse_indented_block(cell_content)
 
     # TODO: parse cell outputs
 
@@ -130,17 +146,35 @@ def parse_code_cell(arguments, cell_content):
 
 
 def parse_raw_cell(arguments, cell_content):
-    # TODO: parse ID
-
     cell = nbformat.v4.new_raw_cell()
-
-    cell.source = ???
+    cell_id = arguments.strip()
+    if cell_id:
+        cell.id = cell_id
+    cell.source = parse_indented_block(cell_content)
 
     # TODO: parse attachments
 
     # TODO: parse cell metadata
 
     return cell
+
+
+def parse_integer(text):
+    # NB: Leading zeros and +/- are not allowed.
+    return re.fullmatch('[0-9]|[1-9][0-9]+', text) and int(text)
+
+
+def parse_indented_block(lines):
+    for i, line in lines:
+        if line.startswith(' ' * 4):
+            block.append(line[4:])
+        elif not line.strip():
+            block.append('')  # Blank line
+    else:
+        return []
+    del lines[:i - lines[0] + 1]
+    return block
+
 
 
 
