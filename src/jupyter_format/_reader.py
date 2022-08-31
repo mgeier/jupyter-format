@@ -328,31 +328,109 @@ class SourceLines:
         if isinstance(source, str):
             source = source.splitlines()
         self._iter = iter(source)
-        self.current = -1
+        self.current_number = 0
         self.advance()
 
-    def peek(self):
+    def current_line(self):
         if isinstance(self._next, StopIteration):
             raise self._next
         return self._next
 
     def advance(self):
         try:
-            line = next(self._iter)
-            if line.endswith('\n'):
-                line = line[:-1]
-            self._next = line
+            self._next = next(self._iter).rstrip('\n')
         except StopIteration as e:
             self._next = e
-        self.current += 1
+        self.current_number += 1
 
-    def __iter__(self):
-        return self
+    #def __iter__(self):
+    #    return self
+
+    #def __next__(self):
+    #    line = self._peek()
+    #    self._advance()
+    #    return line
+
+    def parse(self):
+        try:
+            nb = self.parse_without_exception_handling()
+        except ParseError as e:
+            if len(e.args) == 1:
+                # Add line number
+                e.args += self.current_number,
+            elif len(e.args) == 2:
+                # Apply line number offset
+                e.args = e.args[0], self.current_number - e.args[1]
+            raise e
+        except Exception as e:
+            raise ParseError(
+                type(e).__name__ + ': ' + str(e), self.current_number) from e
+        return nb
+
+    def parse_without_exception_handling(self):
+        nb = self.parse_head()
+        for cell in CellParser(self):
+            nb.cells.append(cell)
+        nb.metadata.update(self.parse_notebook_metadata())
+
+        # TODO: check trailing garbage
+
+        return nb
+
+
+class CellParser:
+
+    def __init__(self, parser):
+        self._parser = parser
 
     def __next__(self):
-        line = self.peek()
-        self.advance()
-        return line
+        p = self._parser
+        # NB: This may raise StopIteration:
+        line = p.current_line()
+
+        cell_type, _, arguments = line.partition(' ')
+
+
+        if cell_type == 'code':
+            # TODO: optionally parse execution_count, remove from arguments
+            pass
+
+        # TODO: parse cell ID
+
+        # Additional whitespace between arguments is allowed for convenience:
+        arguments = arguments.split()
+        if cell_type == 'markdown':
+            cell = nbformat.v4.new_markdown_cell()
+        elif cell_type == 'code':
+            cell = nbformat.v4.new_code_cell()
+        elif cell_type == 'raw':
+            cell = nbformat.v4.new_raw_cell()
+        elif cell_type == 'metadata':
+            raise StopIteration
+        else:
+            # TODO: error handling
+
+            #"Expected (unindented) cell type or 'metadata', "
+            #"got {!r}".format(line))
+            raise NotImplementedError
+        if cell_id:
+            cell.id = cell_id
+
+        p.advance()
+
+        # TODO: only selected cell types:
+        cell.source = p.parse_indented_block()
+
+        if cell.cell_type in ('markdown', 'raw'):
+            # attachments (since v4.1)
+            for name, attachment in p.parse_attachments():
+                cell.attachments[name] = attachment
+        elif cell.cell_type == 'code':
+            for output in p.parse_outputs():
+                cell.outputs.append(output)
+        cell.metadata.update(p.parse_cell_metadata())
+        return cell
+
 
 
 def indented(indentation, lines):
