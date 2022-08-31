@@ -81,31 +81,6 @@ def traceback(lines):
     raise ParseError("Missing 'traceback'")
 
 
-def mime_bundle(lines):
-    bundle = {}
-    for line in indented(3, lines):
-        mime_type = line
-        # TODO: allow whitespace?
-        if mime_type != mime_type.strip():
-            # TODO: better error message?
-            raise ParseError('Invalid MIME type: {!r}'.format(mime_type))
-        # TODO: check for repeated MIME type?
-        content = indented_block(lines)
-        if content:
-            content += '\n'
-        if RE_JSON.match(mime_type):
-            bundle[mime_type] = parse_json(content)
-        else:
-            if content and content.endswith('\n') and content.strip('\n'):
-                content = content[:-1]
-            bundle[mime_type] = content
-    return bundle
-
-
-def metadata(lines):
-    return parse_json(indented_block(lines))
-
-
 def parse_json(text):
     if not text:
         return {}
@@ -223,6 +198,17 @@ class Parser:
                 raise ParseError(f'Duplicate MIME type: {mime_type!r}')
             bundle[mime_type] = data
         return bundle
+
+    def parse_notebook_metadata(self):
+        try:
+            line = self.current_line()
+        except StopIteration:
+            return {}
+        # TODO: this has been checked before?
+        assert line.rstrip() = 'metadata'
+        self.advance()
+        # TODO: check for empty data?
+        return parse_json(self.parse_indented_block())
 
 
 class CellParser:
