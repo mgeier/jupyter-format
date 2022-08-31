@@ -161,7 +161,7 @@ class Parser:
                     f'got {line!r}')
         except StopIteration:
             raise ParseError('First line missing, expected "nbformat X.Y"')
-        if nb.nbformat != 4:
+        if major != 4:
             raise ParseError('Only v4 notebooks are currently supported')
         nb = nbformat.v4.new_notebook()
         nb.nbformat = major
@@ -199,13 +199,24 @@ class Parser:
             bundle[mime_type] = data
         return bundle
 
+    def parse_cell_metadata(self):
+        try:
+            line = self.current_line()
+        except StopIteration:
+            return {}
+        if line.rstrip() != '- metadata':
+            raise StopIteration
+        self.advance()
+        # TODO: check for empty data?
+        return parse_json(self.parse_indented_block())
+
     def parse_notebook_metadata(self):
         try:
             line = self.current_line()
         except StopIteration:
             return {}
         # TODO: this has been checked before?
-        assert line.rstrip() = 'metadata'
+        assert line.rstrip() == 'metadata'
         self.advance()
         # TODO: check for empty data?
         return parse_json(self.parse_indented_block())
@@ -215,6 +226,9 @@ class CellParser:
 
     def __init__(self, parser):
         self._parser = parser
+
+    def __iter__(self):
+        return self
 
     def __next__(self):
         p = self._parser
@@ -274,6 +288,9 @@ class AttachmentParser:
     def __init__(self, parser):
         self._parser = parser
 
+    def __iter__(self):
+        return self
+
     def __next__(self):
         p = self._parser
         # NB: This may raise StopIteration:
@@ -290,6 +307,9 @@ class MimeTypeParser:
 
     def __init__(self, parser):
         self._parser = parser
+
+    def __iter__(self):
+        return self
 
     def __next__(self):
         p = self._parser
