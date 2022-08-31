@@ -25,19 +25,6 @@ def deserialize(source):
     return Parser(source).parse()
 
 
-def attachment(line, lines, cell):
-    if not line.startswith('attachment'):
-        raise ParseError(
-            "Only 'attachment' is allowed here, not {!r}".format(line))
-    if not hasattr(cell, 'attachments'):
-        cell.attachments = {}
-    name = word_plus_string('attachment', line)
-    if name in cell.attachments:
-        raise ParseError(
-            'Duplicate attachment name: {!r}'.format(name))
-    cell.attachments[name] = mime_bundle(lines)
-
-
 def code_output(line, lines, cell):
     kwargs = {}
     if line.startswith('stream'):
@@ -131,32 +118,6 @@ def parse_json(text):
             'JSON error in column {}: {}'.format(e.colno + 4, e.msg),
             total - e.lineno + 1)
     return data
-
-
-def word_plus_integer(word, line):
-    m = re.match(word + ' ([0-9]|[1-9][0-9]+)$', line)
-    if not m:
-        raise ParseError(
-            'Expected {!r} followed by a space and an integer'.format(word))
-    return int(m.group(1))
-
-
-def word_plus_string(word, line):
-    chars = len(word)
-    # TODO: check if line[chars + 1] is a space?
-    # TODO: use split() or partition()?
-    if len(line) < chars + 2 or line[chars] != ' ':
-        raise ParseError('Missing string after {!r}'.format(word))
-    return line[chars + 1:]
-
-
-def word(word, line):
-    if line.startswith(word):
-        if line != word:
-            raise ParseError('No text allowed after {!r}'.format(word))
-        return True
-    else:
-        return False
 
 
 class Parser:
@@ -254,6 +215,15 @@ class Parser:
             self.advance()
         return '\n'.join(lines)
 
+    def parse_mime_bundle(self):
+        bundle = {}
+        for mime_type, data in MimeTypeParser(self):
+            if mime_type in bundle:
+                # TODO: this will have the wrong line number:
+                raise ParseError(f'Duplicate MIME type: {mime_type!r}')
+            bundle[mime_type] = data
+        return bundle
+
 
 class CellParser:
 
@@ -302,7 +272,9 @@ class CellParser:
 
         if cell.cell_type in ('markdown', 'raw'):
             # attachments (since v4.1)
-            for name, attachment in p.parse_attachments():
+            for name, attachment in AttachmentParser(p):
+                if name in cell.attachments:
+                    raise ParseError(f'Duplicate attachment name: {name!r}')
                 cell.attachments[name] = attachment
         elif cell.cell_type == 'code':
             for output in p.parse_outputs():
@@ -311,9 +283,49 @@ class CellParser:
         return cell
 
 
+class AttachmentParser:
+
+    def __init__(self, parser):
+        self._parser = parser
+
+    def __next__(self):
+        p = self._parser
+        # NB: This may raise StopIteration:
+        line = p.current_line()
+        prefix, _, name = line.partition('- attachment ')
+        name = name.strip()
+        if prefix or not name:
+            raise StopIteration
+        p.advance()
+        return name, p.parse_mime_bundle()
+
+
+class MimeTypeParser:
+
+    def __init__(self, parser):
+        self._parser = parser
+
+    def __next__(self):
+        p = self._parser
+        # NB: This may raise StopIteration:
+        line = p.current_line()
+        prefix, _, mime_type = line.partition('  - ')
+        mime_type = mime_type.strip()
+        if prefix or not mime_type:
+            raise StopIteration
+        p.advance()
+        content = p.parse_indented_block()
+        if not content:
+            raise ParseError(f'no content for MIME type {mime_type}')
+        if RE_JSON.match(mime_type):
+            # TODO: + \n?
+            content = parse_json(content + '\n')
+        elif content.endswith('\n') and content.strip('\n'):
+            content = content[:-1]
+        return mime_type, content
+
+
 def parse_integer(text):
     """Parse a valid integer or return None."""
     # NB: Leading zeros and +/- are not allowed.
     return re.fullmatch('[0-9]|[1-9][0-9]+', text) and int(text)
-
-
