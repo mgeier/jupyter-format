@@ -22,161 +22,7 @@ def deserialize(source):
     :rtype: nbformat.NotebookNode
 
     """
-    if isinstance(source, str):
-        source = source.splitlines()
-    lines = enumerate((line.rstrip('\n') for line in source), 1)
-
-    try:
-        i, line = next(lines)
-        line = line.rstrip()
-        name, _, version = line.partition(' ')
-        major, _, minor = version.partition('.')
-        major = parse_integer(major)
-        minor = parse_integer(minor)
-        if name != 'nbformat' or None in (major, minor):
-            raise ParseError(
-                "Expected 'nbformat X.Y', with integers X and Y, "
-                f'got {line!r}', i)
-    except StopIteration:
-        raise ParseError('First line missing, expected "nbformat X.Y"')
-
-    if major != 4:
-        raise ParseError('Only v4 notebooks are currently supported', 1)
-
-    nb = nbformat.v4.new_notebook()
-    nb.nbformat = major
-    nb.nbformat_minor = minor
-
-    try:
-        i, next_line = next(lines)
-    except StopIteration:
-        return nb
-
-    while next_line is not None:
-        cell_type, _, arguments = next_line.partition(' ')
-
-
-        if cell_type == 'code':
-            # TODO: optionally parse execution_count, remove from arguments
-            pass
-
-        # TODO: parse cell ID
-
-
-
-
-        cell_content = []
-        for i, next_line in lines:
-            if next_line == '' or next_line[0] in (' ', '-'):
-                cell_content.append((i, next_line))
-            else:
-                break
-        else:
-            # End of input
-            next_line = None
-
-        # Additional whitespace between arguments is allowed for convenience:
-        arguments = arguments.split()
-        if cell_type == 'markdown':
-            cell = parse_markdown_cell(arguments, cell_content)
-        elif cell_type == 'code':
-            cell = parse_code_cell(arguments, cell_content)
-        elif cell_type == 'raw':
-            cell = parse_raw_cell(arguments, cell_content)
-        elif cell_type == 'metadata':
-            nb.metadata = parse_metadata(arguments, cell_content)
-            # No more cells are allowed after metadata
-            break
-        else:
-            # TODO: error handling
-
-            #"Expected (unindented) cell type or 'metadata', "
-            #"got {!r}".format(line))
-            raise NotImplementedError
-        if cell_id:
-            cell.id = cell_id
-        nb.cells.append(cell)
-
-    if next_line is not None:
-        #'All notebook metadata lines must be indented by 4 spaces '
-        #'and no subsequent lines are allowed')
-        raise ParseError(
-            'Unexpected content after notebook metadata: {next_line!r}', i)
-
-    return nb
-
-
-def parse_markdown_cell(arguments, cell_content):
-    cell = nbformat.v4.new_markdown_cell()
-    if len(arguments) == 1:
-        cell.id = arguments[0]
-    elif len(arguments) > 1:
-        # TODO: obtain line number
-        raise ParseError('Only one argument (the cell ID) is allowed in markdown cells')
-
-
-
-
-    cell.source = parse_indented_block(cell_content)
-
-    # TODO: parse attachments
-
-    # TODO: parse cell metadata
-
-    return cell
-
-
-def parse_code_cell(arguments, cell_content):
-    # TODO: parse execution_count
-
-    cell = nbformat.v4.new_code_cell()
-
-    cell.execution_count = ???
-
-    cell_id = ???.strip()
-    if cell_id:
-        cell.id = cell_id
-    cell.source = parse_indented_block(cell_content)
-
-    # TODO: parse cell outputs
-
-    # TODO: parse cell metadata
-
-    return cell
-
-
-def parse_raw_cell(arguments, cell_content):
-    cell = nbformat.v4.new_raw_cell()
-    cell_id = arguments.strip()
-    if cell_id:
-        cell.id = cell_id
-    cell.source = parse_indented_block(cell_content)
-
-    # TODO: parse attachments
-
-    # TODO: parse cell metadata
-
-    return cell
-
-
-def parse_integer(text):
-    # NB: Leading zeros and +/- are not allowed.
-    return re.fullmatch('[0-9]|[1-9][0-9]+', text) and int(text)
-
-
-def parse_indented_block(lines):
-    for i, line in lines:
-        if line.startswith(' ' * 4):
-            block.append(line[4:])
-        elif not line.strip():
-            block.append('')  # Blank line
-    else:
-        return []
-    del lines[:i - lines[0] + 1]
-    return block
-
-
-
+    return Parser(source).parse()
 
 
 def attachment(line, lines, cell):
@@ -287,10 +133,6 @@ def parse_json(text):
     return data
 
 
-def indented_block(lines):
-    return '\n'.join(indented(4, lines))
-
-
 def word_plus_integer(word, line):
     m = re.match(word + ' ([0-9]|[1-9][0-9]+)$', line)
     if not m:
@@ -317,12 +159,7 @@ def word(word, line):
         return False
 
 
-class SourceLines:
-    """Iterator over source lines.
-
-    Strips trailing newlines, tracks current line number, allows peeking.
-
-    """
+class Parser:
 
     def __init__(self, source):
         if isinstance(source, str):
@@ -343,14 +180,6 @@ class SourceLines:
             self._next = e
         self.current_number += 1
 
-    #def __iter__(self):
-    #    return self
-
-    #def __next__(self):
-    #    line = self._peek()
-    #    self._advance()
-    #    return line
-
     def parse(self):
         try:
             nb = self.parse_without_exception_handling()
@@ -368,14 +197,62 @@ class SourceLines:
         return nb
 
     def parse_without_exception_handling(self):
-        nb = self.parse_head()
+        nb = self.parse_header()
         for cell in CellParser(self):
             nb.cells.append(cell)
         nb.metadata.update(self.parse_notebook_metadata())
 
         # TODO: check trailing garbage
 
+        #'All notebook metadata lines must be indented by 4 spaces '
+        #'and no subsequent lines are allowed')
+        #raise ParseError(
+        #    'Unexpected content after notebook metadata: {next_line!r}', i)
+
         return nb
+
+    def parse_header(self):
+        try:
+            line = self.current_line()
+            line = line.rstrip()
+            name, _, version = line.partition(' ')
+            major, _, minor = version.partition('.')
+            major = parse_integer(major)
+            minor = parse_integer(minor)
+            if name != 'nbformat' or None in (major, minor):
+                raise ParseError(
+                    "Expected 'nbformat X.Y', with integers X and Y, "
+                    f'got {line!r}')
+        except StopIteration:
+            raise ParseError('First line missing, expected "nbformat X.Y"')
+        if nb.nbformat != 4:
+            raise ParseError('Only v4 notebooks are currently supported')
+        nb = nbformat.v4.new_notebook()
+        nb.nbformat = major
+        nb.nbformat_minor = minor
+        self.advance()
+        return nb
+
+    def parse_indented_block(self):
+        """Parse block of text that's indented by 4 spaces.
+
+        Blank lines are included as empty lines.
+
+        """
+        lines = []
+        while True:
+            try:
+                line = self.current_line()
+            except StopIteration:
+                break
+            if line.startswith(' ' * 4):
+                lines.append(line[4:])
+            elif not line.strip():
+                lines.append('')  # Blank line
+            else:
+                break
+            self.advance()
+        return '\n'.join(lines)
 
 
 class CellParser:
@@ -387,38 +264,40 @@ class CellParser:
         p = self._parser
         # NB: This may raise StopIteration:
         line = p.current_line()
-
         cell_type, _, arguments = line.partition(' ')
+        if cell_type == 'metadata':
+            # This will be handled afterwards
+            raise StopIteration
 
-
-        if cell_type == 'code':
-            # TODO: optionally parse execution_count, remove from arguments
-            pass
-
-        # TODO: parse cell ID
-
-        # Additional whitespace between arguments is allowed for convenience:
-        arguments = arguments.split()
         if cell_type == 'markdown':
             cell = nbformat.v4.new_markdown_cell()
         elif cell_type == 'code':
             cell = nbformat.v4.new_code_cell()
         elif cell_type == 'raw':
             cell = nbformat.v4.new_raw_cell()
-        elif cell_type == 'metadata':
-            raise StopIteration
         else:
             # TODO: error handling
 
             #"Expected (unindented) cell type or 'metadata', "
             #"got {!r}".format(line))
             raise NotImplementedError
-        if cell_id:
-            cell.id = cell_id
 
+        # Additional whitespace between arguments is allowed for convenience:
+        arguments = arguments.split()
+        if cell_type == 'code' and len(arguments) >= 1:
+            cell.execution_count = parse_integer(arguments[0])
+            if cell.execution_count is not None:
+                del arguments[0]
+        # TODO: check nbformat_minor if IDs are supported?
+        if len(arguments) == 1:
+            cell.id = arguments[0]
+        elif len(arguments) > 1:
+            raise ParseError(
+                f'Too many arguments for {cell_type} cell: {line!r}')
+
+        # First line has been parsed successfully
         p.advance()
 
-        # TODO: only selected cell types:
         cell.source = p.parse_indented_block()
 
         if cell.cell_type in ('markdown', 'raw'):
@@ -432,23 +311,9 @@ class CellParser:
         return cell
 
 
+def parse_integer(text):
+    """Parse a valid integer or return None."""
+    # NB: Leading zeros and +/- are not allowed.
+    return re.fullmatch('[0-9]|[1-9][0-9]+', text) and int(text)
 
-def indented(indentation, lines):
-    """Iterator adaptor which stops if there is less indentation.
 
-    Blank lines are forwarded as empty lines.
-
-    """
-    while True:
-        try:
-            line = lines.peek()
-        except StopIteration:
-            break
-        if line.startswith(' ' * indentation):
-            line = line[indentation:]
-        elif not line.strip():
-            line = ''  # Blank line
-        else:
-            break
-        lines.advance()
-        yield line
